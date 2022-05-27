@@ -47,7 +47,7 @@ def _preprocess_data(data):
     # Convert the json string to a python dictionary object
     feature_vector_dict = json.loads(data)
     # Load the dictionary as a Pandas DataFrame.
-    feature_vector_df = pd.DataFrame.from_dict([feature_vector_dict])
+    df_clean = pd.DataFrame.from_dict([feature_vector_dict])
 
     # ---------------------------------------------------------------
     # NOTE: You will need to swap the lines below for your own data
@@ -58,11 +58,33 @@ def _preprocess_data(data):
     # ---------------------------------------------------------------
 
     # ----------- Replace this code with your own preprocessing steps --------
-    predict_vector = feature_vector_df[['Madrid_wind_speed','Bilbao_rain_1h','Valencia_wind_speed']]
+    
+    df_clean = df_clean.fillna(1018)
+    # convert the time column to datetime dtype
+    df_clean['time'] = pd.to_datetime(df_clean['time'])
+    # creating new features from the train data time column
+    # year
+    df_clean['Year'] = df_clean['time'].dt.year
+    # month
+    df_clean['Month'] = df_clean['time'].dt.month
+    # day
+    df_clean['Day'] = df_clean['time'].dt.day
+    # hour
+    df_clean['hour'] = df_clean['time'].dt.hour
+    # extracting numbers from Valencia wind degree levels
+    df_clean['Valencia_wind_deg'] = df_clean['Valencia_wind_deg'].str.extract('(\d+)')
+    # convert extracted numbers data type from object to numeric datatype
+    df_clean['Valencia_wind_deg'] = pd.to_numeric(df_clean['Valencia_wind_deg'])
+    # extract numbers from Seville pressure data
+    df_clean['Seville_pressure'] = df_clean['Seville_pressure'].str.extract('(\d+)')
+    # convert extracted numbers data type from object to numeric datatype
+    df_clean['Seville_pressure'] = pd.to_numeric(df_clean['Seville_pressure'])
+    #Dropping Irrelevant features
+    df_clean = df_clean.drop(['Unnamed: 0', 'time'], axis = 1)
+    return df_clean
     # ------------------------------------------------------------------------
 
-    return predict_vector
-
+    
 def load_model(path_to_model:str):
     """Adapter function to load our pretrained model into memory.
 
